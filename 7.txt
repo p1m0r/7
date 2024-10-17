@@ -1,0 +1,63 @@
+import sys
+from PyQt6.QtWidgets import QApplication, QMainWindow, QTextEdit, QAction, QFileDialog, QVBoxLayout, QWidget, QMessageBox
+
+class NoteEditor(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+        self.text_edit = QTextEdit(self)
+        layout = QVBoxLayout()
+        layout.addWidget(self.text_edit)
+        self.setLayout(layout)
+        self.setWindowTitle("Новая заметка")
+        self.setGeometry(100, 100, 400, 300)
+
+    def get_text(self):
+        return self.text_edit.toPlainText()
+
+    def set_text(self, text):
+        self.text_edit.setPlainText(text)
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+        self.setWindowTitle("Приложение для заметок")
+        self.setGeometry(100, 100, 600, 400)
+
+        # Создание меню
+        menubar = self.menuBar()
+        file_menu = menubar.addMenu("Файл")
+
+        new_note_action = QAction("Новая заметка", self)
+        new_note_action.triggered.connect(self.new_note)
+        file_menu.addAction(new_note_action)
+
+        save_note_action = QAction("Сохранить заметку", self)
+        save_note_action.triggered.connect(self.save_note)
+        file_menu.addAction(save_note_action)
+
+    def new_note(self):
+        self.note_editor = NoteEditor()
+        self.note_editor.show()
+
+    def save_note(self):
+        if not hasattr(self, 'note_editor'):
+            QMessageBox.warning(self, "Ошибка", "Нет открытого редактора заметок.")
+            return
+
+        options = QFileDialog.Options()
+        file_name, _ = QFileDialog.getSaveFileName(self, "Сохранить заметку", "", "Text Files (*.txt);;All Files (*)", options=options)
+        if file_name:
+            with open(file_name, 'w', encoding='utf-8') as file:
+                file.write(self.note_editor.get_text())
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    main_window = MainWindow()
+    main_window.show()
+    sys.exit(app.exec())
